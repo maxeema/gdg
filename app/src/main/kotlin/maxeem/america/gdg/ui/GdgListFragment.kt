@@ -192,11 +192,15 @@ class GdgListFragment : BaseFragment() {
             addListener(object: TransitionListenerAdapter() {
                 override fun onTransitionEnd(transition: Transition) {
                     removeListener(this)
-                    viewOwner?.lifecycleScope?.launchWhenCreated {
+                    viewOwner?.lifecycleScope?.launchWhenStarted {
                         title()
-                        viewOwner?.lifecycleScope?.launchWhenCreated {
-                            delay(300)
+                        delay(300)
+                        viewOwner?.lifecycleScope?.launchWhenStarted {
                             regions(true)
+                            delay(3500)
+                            viewOwner?.lifecycleScope?.launchWhenResumed {
+                                checkLocation()
+                            }
                         }
                     }
                 }
@@ -247,14 +251,12 @@ class GdgListFragment : BaseFragment() {
     override fun onStart() { super.onStart()
         if (locationHelper.client != null) {
             locationHelper.listenToUpdates()
-        } else viewOwner?.lifecycleScope?.launch {
-            delay(2_000)
-            viewOwner?.lifecycleScope?.launchWhenStarted {
-                if (!locationHelper.hasRequestedLastLocationOnStart) {
-                    locationHelper.hasRequestedLastLocationOnStart = true
-                    requestLastLocationWithPermissionCheck()
-                }
-            }
+        }
+    }
+    private fun checkLocation() {
+        if (!locationHelper.hasRequestedLastLocationOnStart) {
+            locationHelper.hasRequestedLastLocationOnStart = true
+            requestLastLocationWithPermissionCheck()
         }
     }
     override fun onStop() { super.onStop()
